@@ -47,18 +47,18 @@ pub static VERSIONS: &[ClientVersion] = &[
         ver: "0.97.8", date: "?? ??? 2026", desc: "openRust AND action write init",
         extra: r#"<link href="./cli/0.97.8/main.css?ver=20" rel=stylesheet>
         <link href="./cli/0.97.8/window.css?ver=20" rel=stylesheet>
-        <script defer src="./cli/0.97.8/newHelper.js?ver=23"></script>
-        <script defer src="./cli/0.97.8/nhConfig.js?ver=24"></script>
-        <script defer src="./cli/0.97.8/ojhub.js?ver=24"></script>"#
+        <script defer src="./cli/0.97.8/newHelper.js?ver=25"></script>
+        <script defer src="./cli/0.97.8/nhConfig.js?ver=25"></script>
+        <script defer src="./cli/0.97.8/ojhub.js?ver=25"></script>"#
     },
 
     ClientVersion {
         ver: "0.97.7", date: "27 Jul 2026", desc: "openGo init",
         extra: r#"<link href="./cli/0.97.7/main.css?ver=20" rel=stylesheet>
         <link href="./cli/0.97.7/window.css?ver=20" rel=stylesheet>
-        <script defer src="./cli/0.97.7/newHelper.js?ver=23"></script>
-        <script defer src="./cli/0.97.7/nhConfig.js?ver=24"></script>
-        <script defer src="./cli/0.97.7/ojhub.js?ver=24"></script>"#
+        <script defer src="./cli/0.97.7/newHelper.js?ver=25"></script>
+        <script defer src="./cli/0.97.7/nhConfig.js?ver=25"></script>
+        <script defer src="./cli/0.97.7/ojhub.js?ver=25"></script>"#
     },
 
     ClientVersion {
