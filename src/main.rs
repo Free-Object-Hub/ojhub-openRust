@@ -48,7 +48,7 @@ static PHP: &str = ".php";
 
 // то что openGo уже реализовал, но openRust ещё нет -> 398, шлём в openGo
 static DROP_TO_OPENGO: &[&str] = &[
-    // "user/login",
+    "user/login",
     "user/register",
     "send/newsPost",
     "send/newsModify",
@@ -181,7 +181,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/loader", get(cli_loader_handler))
-        .route("/server/133/user/login.php", post(login_handler))
+        //.route("/server/133/user/login.php", post(login_handler))
         .route("/cli/send-push", post(send_push_handler));
 
     let app = register_fallback_routes(app);
