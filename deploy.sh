@@ -17,8 +17,7 @@ echo "Restarting service..."
 ssh -p 2243 -i "$HOME/.ssh/id_ed25519" ${REMOTE_USER}@${REMOTE_HOST} "
     mv ${REMOTE_PATH}openRust.new ${REMOTE_PATH}openRust &&
     chmod +x ${REMOTE_PATH}openRust &&
-    service ojhub stop &&
-    service ojhub start
+    service ojhub onerestart
 "
 
 echo "Done."

@@ -25,6 +25,10 @@ mod loader;
 mod db;
 mod push;
 mod index;
+mod auth;
+mod handlers;
+mod devices;
+mod porting;
 
 use axum::{Router, routing::get, routing::post};
 use loader::cli_loader_handler;
@@ -35,13 +39,16 @@ use sqlx::MySqlPool;
 use sqlx::mysql::MySqlConnectOptions;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
+use maxminddb::Reader;
+use std::sync::Arc;
+use crate::handlers::login::login_handler;
 
 static API_ADDR: &str = "/server/133/";
 static PHP: &str = ".php";
 
 // то что openGo уже реализовал, но openRust ещё нет -> 398, шлём в openGo
 static DROP_TO_OPENGO: &[&str] = &[
-    "user/login",
+    // "user/login",
     "user/register",
     "send/newsPost",
     "send/newsModify",
@@ -60,6 +67,18 @@ static DROP_TO_OPENGO: &[&str] = &[
 	"content/getAlarm",
 	"send/deleteAlarm",
 	"send/writeAlarm",
+    "send/campAdd",
+    "send/showAdd",
+    "send/pereAdd",
+    "send/teleAdd",
+    "send/campEdit",
+    "send/showEdit",
+    "send/pereEdit",
+    "send/teleEdit",
+    "send/bump",
+	"content/getOwners",
+	"send/permAdd",
+	"send/perm",
 	"gdps/sub",
 	"gdps/unsub",
 	"gdps/subs",
@@ -75,6 +94,12 @@ static DROP_TO_OPENGO: &[&str] = &[
     "vacans/getAll",
     "vacans/apply",
     "vacans/removeApl",
+    "vacans/get",
+    "vacans/edit",
+    "vacans/removeVac",
+    "vacans/applies",
+    "send/vacsAdd",
+    "send/vacsEdit",
     "content/vacsC",
     "content/camp",
     "loginT",
@@ -92,19 +117,6 @@ static DROP_TO_PHP: &[&str] = &[
     "content/getAddedShows",
     "content/getAddedPeres",
     "content/getUserGuides",
-    "send/campAdd",
-    "send/showAdd",
-    "send/pereAdd",
-    "send/teleAdd",
-    "send/campEdit",
-    "send/showEdit",
-    "send/pereEdit",
-    "send/teleEdit",
-    "vacans/get",
-    "vacans/edit",
-    "send/vacsAdd",
-    "vacans/removeVac",
-    "vacans/applies",
     "content/getJoinLog",
     "search/connectWiki",
     "send/newWiki",
@@ -120,17 +132,15 @@ static DROP_TO_PHP: &[&str] = &[
     "wiki/filesGet",
     "wiki/filesSend",
     "wiki/setMainWiki",
-    "content/getOwners",
-    "send/perm",
-    "send/permAdd",
     "!newTakeAll",
+    "Aaction",
 ];
 
 pub async fn drop_to_php() -> impl IntoResponse {
     (StatusCode::from_u16(399).unwrap(), "")
 }
 
-fn register_fallback_routes(mut app: Router<MySqlPool>) -> Router<MySqlPool> {
+fn register_fallback_routes(mut app: Router<AppState>) -> Router<AppState> {
     for suffix in DROP_TO_OPENGO {
         let path = format!("{API_ADDR}{suffix}{PHP}");
         app = app.route(&path, axum::routing::any(drop_to_go));
@@ -142,6 +152,12 @@ fn register_fallback_routes(mut app: Router<MySqlPool>) -> Router<MySqlPool> {
     app
 }
 
+#[derive(Clone)]
+pub struct AppState {
+    pub db: MySqlPool,
+    pub geo: std::sync::Arc<maxminddb::Reader<Vec<u8>>>,
+}
+
 #[tokio::main]
 async fn main() {
     let opts = MySqlConnectOptions::new()
@@ -150,23 +166,29 @@ async fn main() {
         .username(&std::env::var("SQL_USER").expect("SQL_USER"))
         .password(&std::env::var("SQL_PASSWD").unwrap_or_default())
         .database(&std::env::var("SQL_DB").expect("SQL_DB"));
-
     let pool = MySqlPoolOptions::new()
         .max_connections(6)
         .connect_with(opts)
         .await
         .expect("Failed to connect to MySQL");
+    let geo_reader = Reader::open_readfile("GeoLite2-City.mmdb")
+        .expect("Failed to load GeoLite2 database");
+    let state = AppState {
+        db: pool,
+        geo: Arc::new(geo_reader),
+    };
 
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/loader", get(cli_loader_handler))
+        .route("/server/133/user/login.php", post(login_handler))
         .route("/cli/send-push", post(send_push_handler));
 
     let app = register_fallback_routes(app);
 
-    let app = app.with_state(pool);
+    let app = app.with_state(state);
     
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8087").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:8087").await.unwrap();
     println!("listening on 8087");
     axum::serve(listener, app).await.unwrap();
 }

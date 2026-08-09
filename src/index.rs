@@ -13,7 +13,7 @@ use axum::{
     }
 };
 use std::collections::HashMap;
-use sqlx::MySqlPool;
+use crate::AppState;
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use crate::db::{gdps_fetch_by_id, wiki_fetch_by_id, vac_fetch_by_id, news_fetch_by_id};
 use crate::loader::get_ver_from_cookie;
@@ -29,10 +29,10 @@ fn truncate_chars(s: &str, max_chars: usize) -> String {
     s.chars().take(max_chars).collect()
 }
 
-async fn build_meta_tags(pool: &MySqlPool, params: &HashMap<String, String>, raw_query: &Option<String>) -> String {
+async fn build_meta_tags(state: &AppState, params: &HashMap<String, String>, raw_query: &Option<String>) -> String {
     if let Some((route, id)) = parse_future_link_format(raw_query) {
         if route == "VacsC" {
-            if let Ok(Some(vac)) = vac_fetch_by_id(pool, id).await {
+            if let Ok(Some(vac)) = vac_fetch_by_id(&state.db, id).await {
                 let descr = build_description(vac.short.as_deref(), &vac.text);
                 let image = vac.g_title.map(|_| "".to_string()).unwrap_or_default(); 
                 // ^ картинки у вакансии нет в структуре, но можешь добавить gImg в SELECT если нужна
@@ -48,7 +48,7 @@ async fn build_meta_tags(pool: &MySqlPool, params: &HashMap<String, String>, raw
         );
     }
     if let Some(wiki_id) = params.get("wiki").and_then(|s| s.parse::<i32>().ok()) {
-        if let Ok(Some(wiki)) = wiki_fetch_by_id(pool, wiki_id).await {
+        if let Ok(Some(wiki)) = wiki_fetch_by_id(&state.db, wiki_id).await {
             let descr = build_description(wiki.short.as_deref(), &wiki.text);
             return build_tags(&wiki.title, &descr, &wiki.img);
         }
@@ -58,7 +58,7 @@ async fn build_meta_tags(pool: &MySqlPool, params: &HashMap<String, String>, raw
         .find_map(|key| params.get(*key))
         .and_then(|s| s.parse::<i32>().ok());
     if let Some(id) = gdps_id {
-        if let Ok(Some(gdps)) = gdps_fetch_by_id(pool, id).await {
+        if let Ok(Some(gdps)) = gdps_fetch_by_id(&state.db, id).await {
             let descr = build_description(gdps.short.as_deref(), &gdps.description);
             return build_tags(&gdps.title, &descr, &gdps.img);
         }
@@ -66,7 +66,7 @@ async fn build_meta_tags(pool: &MySqlPool, params: &HashMap<String, String>, raw
     if let Some(news_param) = params.get("news/comms") {
         let id_part = news_param.split('|').next().unwrap_or("");
         if let Ok(news_id) = id_part.parse::<i32>() {
-            if let Ok(Some(news)) = news_fetch_by_id(pool, news_id).await {
+            if let Ok(Some(news)) = news_fetch_by_id(&state.db, news_id).await {
                 let decoded = STANDARD.decode(&news.text)
                     .ok()
                     .and_then(|bytes| String::from_utf8(bytes).ok())
@@ -106,14 +106,14 @@ fn build_tags(title: &str, desc: &str, img: &str) -> String {
 }
 
 pub async fn index_handler(
-    State(pool): State<MySqlPool>,
+    State(state): State<AppState>,
     Query(params): Query<HashMap<String, String>>,
     RawQuery(raw_query): RawQuery,
     headers: HeaderMap
 ) -> Response {
     let ver = get_ver_from_cookie(&headers);
     
-    let meta_tags = build_meta_tags(&pool, &params, &raw_query).await;
+    let meta_tags = build_meta_tags(&state, &params, &raw_query).await;
     
     let html = format!(r#"<!DOCTYPE html>
 <html>

@@ -1,6 +1,5 @@
 use axum::{Json, extract::State};
 use serde::Deserialize;
-use sqlx::MySqlPool;
 use std::io::Cursor;
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -10,6 +9,8 @@ use web_push::{
     SubscriptionInfo, VapidSignatureBuilder, WebPushMessageBuilder,
     ContentEncoding, WebPushError, IsahcWebPushClient, WebPushClient,
 };
+//use sqlx::MySqlPool;
+use crate::AppState;
 
 #[derive(Deserialize)]
 pub struct SendPushRequest {
@@ -34,7 +35,7 @@ fn vapid_key_to_pem(raw_base64url: &str) -> Result<String, String> {
 }
 
 pub async fn send_push_handler(
-    State(_pool): State<MySqlPool>, // пока не используется, но роутер требует State везде
+    State(_pool): State<AppState>, // пока не используется, но роутер требует State везде
     Json(req): Json<SendPushRequest>,
 ) -> String {
     let subscription_info = SubscriptionInfo::new(&req.endpoint, &req.p256dh, &req.auth);

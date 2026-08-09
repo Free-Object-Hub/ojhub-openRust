@@ -77,7 +77,29 @@ pub static VERSIONS: &[ClientVersion] = &[
         ver: "0.96.3", date: "12 Sep 2025", desc: "wiki isnt working",
         extra: r#"<link href="./cli/0.96.3/main.css?ver=18" rel=stylesheet>
         <link href="./cli/0.96.3/window.css?ver=18" rel=stylesheet>
-        <script src="./cli/0.96.3/ojhub.js?ver=18&helper"></script>"#
+        <script defer src="./cli/0.96.3/ojhub.js?ver=18&helper"></script>"#
+    },
+
+    ClientVersion {
+        ver: "GHE1.9", date: "24 Now 2024", desc: "GDPS Helper 1.901, not object hub",
+        extra: r#"<link href="./cli/GHE1.9/main.css" rel=stylesheet>
+        <style id="stule">
+            :root {
+                --color-main:rgb(157,97,42);
+                --color-light:rgb(255,134,0);
+                --color-weekly:rgb(189,99,0);
+                --color-weekly-alpha:rgba(189,99,0,.6);
+                --color-black:rgb(29,28,22);
+                --color-black-alpha:rgba(29,28,22,.6);
+                --color-profile:rgb(32,31,24);
+                --color-profile-alpha:rgb(32,31,24,.6);
+            }
+        </style>
+        <script defer src="./cli/GHE1.9/newHelper.js"></script>
+        <script defer>
+            setTimeout(()=>document.body.style="background-color:rgb(12,12,3)",100)
+        </script>
+        "#
     },
 
 ];

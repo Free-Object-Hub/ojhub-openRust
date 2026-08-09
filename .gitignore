@@ -1,2 +1,4 @@
 /target
 run.sh
+GeoLite2-City.mmdb
+rustc.core
