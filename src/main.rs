@@ -19,6 +19,8 @@
  * Смысл openRust останется аналогичный openGo - быть на 100% совместимым
  * с поведением legacy-php, пока никаких амбициозных задач у меня нет вам хватит
  * понимать такую базу
+ *
+ * И да, я как не любил бекенды, так их и не люблю, но совместимость есть совсемтимость
  */
 
 mod loader;
@@ -26,7 +28,6 @@ mod db;
 mod push;
 mod index;
 mod auth;
-mod handlers;
 mod devices;
 mod porting;
 
@@ -41,7 +42,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use maxminddb::Reader;
 use std::sync::Arc;
-use crate::handlers::login::login_handler;
+use crate::auth::h_login::login_handler;
 
 static API_ADDR: &str = "/server/133/";
 static PHP: &str = ".php";
@@ -49,6 +50,7 @@ static PHP: &str = ".php";
 // то что openGo уже реализовал, но openRust ещё нет -> 398, шлём в openGo
 static DROP_TO_OPENGO: &[&str] = &[
     "user/login",
+    "user/logout",
     "user/register",
     "send/newsPost",
     "send/newsModify",
@@ -88,8 +90,15 @@ static DROP_TO_OPENGO: &[&str] = &[
     "content/news",
     "content/newsC",
     "search/new",
+    "content/getUser",
+    "content/getAddedCamps",
+    "content/getAddedShows",
+    "content/getAddedPeres",
+    "content/getAddedTeles",
+    "content/getUserGuides",
     "wiki/getWikis",
     "wiki/getWiki",
+    "wiki/getGuides",
     "wiki/getGuide",
     "vacans/getAll",
     "vacans/apply",
@@ -112,13 +121,10 @@ pub async fn drop_to_go() -> impl IntoResponse {
 
 // то что ни openGo ни openRust не реализовали -> 399, сразу в php
 static DROP_TO_PHP: &[&str] = &[
-    "content/getUser",
-    "content/getAddedCamps",
-    "content/getAddedShows",
-    "content/getAddedPeres",
-    "content/getUserGuides",
     "content/getJoinLog",
-    "search/connectWiki",
+    "search/conntectWiki",
+    "search/conntectContent",
+    "search/deleteWikiFiles",
     "send/newWiki",
     "send/editWiki",
     "wiki/colors",
@@ -126,14 +132,25 @@ static DROP_TO_PHP: &[&str] = &[
     "send/newGuide",
     "send/editGuide",
     "wiki/setWikiTag",
-    "wiki/templatesGet",
     "wiki/templateGet",
+    "wiki/templatesGet",
     "wiki/templateSave",
+    "wiki/templateDelete",
+    "wiki/setMainWiki",
     "wiki/filesGet",
     "wiki/filesSend",
-    "wiki/setMainWiki",
     "!newTakeAll",
     "Aaction",
+    "wordleRU",
+    "wordleEN",
+    "forum/create",
+    "forum/createPost",
+    "forum/getPost",
+    "forum/getPosts",
+    "send/forumPost",
+    "user/setNickname",
+    "user/setSocials",
+    "user/setResume",
 ];
 
 pub async fn drop_to_php() -> impl IntoResponse {

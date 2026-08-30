@@ -1,3 +1,5 @@
+pub mod h_login;
+
 use sqlx::FromRow;
 use maxminddb::geoip2;
 use std::net::IpAddr;

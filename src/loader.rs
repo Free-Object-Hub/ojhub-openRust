@@ -23,7 +23,7 @@
 use axum::{http::HeaderMap, response::Html};
 
 pub fn default_ver() -> String {
-    std::env::var("CLI_VER").unwrap_or_else(|_| "0.97.7".to_string())
+    std::env::var("CLI_VER").unwrap_or_else(|_| "0.98".to_string())
 }
 
 pub fn default_version() -> &'static ClientVersion {
@@ -41,10 +41,20 @@ pub struct ClientVersion {
     pub extra: &'static str,
 }
 
+// FIXME: устранить излишний хардкод как это было в openGo
 pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
-        ver: "0.97.8", date: "?? ??? 2026", desc: "openRust AND action write init",
+        ver: "0.98", date: "?? ??? 2026", desc: "beta 1 BUT ALR IN PROD",
+        extra: r#"<link href="./cli/0.98/main.css?ver=21" rel=stylesheet>
+        <link href="./cli/0.98/window.css?ver=21" rel=stylesheet>
+        <script defer src="./cli/0.98/newHelper.js?ver=26"></script>
+        <script defer src="./cli/0.98/nhConfig.js?ver=26"></script>
+        <script defer src="./cli/0.98/ojhub.js?ver=26"></script>"#
+    },
+
+    ClientVersion {
+        ver: "0.97.8", date: "canceled", desc: "openRust AND action write init",
         extra: r#"<link href="./cli/0.97.8/main.css?ver=20" rel=stylesheet>
         <link href="./cli/0.97.8/window.css?ver=20" rel=stylesheet>
         <script defer src="./cli/0.97.8/newHelper.js?ver=25"></script>
@@ -132,6 +142,9 @@ pub async fn cli_loader_handler(headers: HeaderMap) -> Html<String> {
     //FIXME: сделать current значением куки пользователя
     let html = format!(r#"<!DOCTYPE html>
 <html>
+<head>
+    <meta name=viewport content="width=device-width,initial-scale=1.0">
+</head>
 <body style="display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column">
     <h1>OJHUB LOADER v1.20</h1>
     <p>selected: {current}</p>
