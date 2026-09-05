@@ -45,11 +45,20 @@ pub struct ClientVersion {
 pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
-        ver: "0.98", date: "?? ??? 2026", desc: "beta 1 BUT ALR IN PROD",
+        ver: "0.98.1", date: "?? ??? 2026", desc: "GHE 2.2 and Jails init",
+        extra: r#"<link href="./cli/0.98.1/main.css?ver=21" rel=stylesheet>
+        <link href="./cli/0.98.1/window.css?ver=21" rel=stylesheet>
+        <script defer src="./cli/0.98.1/newHelper.js?ver=26"></script>
+        <script defer src="./cli/0.98.1/nhConfig.js?ver=26"></script>
+        <script defer src="./cli/0.98.1/ojhub.js?ver=26"></script>"#
+    },
+
+    ClientVersion {
+        ver: "0.98", date: "28 Aug 2026", desc: "beta 1 BUT ALR IN PROD",
         extra: r#"<link href="./cli/0.98/main.css?ver=21" rel=stylesheet>
         <link href="./cli/0.98/window.css?ver=21" rel=stylesheet>
         <script defer src="./cli/0.98/newHelper.js?ver=26"></script>
-        <script defer src="./cli/0.98/nhConfig.js?ver=26"></script>
+        <script defer src="./cli/0.98/nhConfig.js?ver=27"></script>
         <script defer src="./cli/0.98/ojhub.js?ver=26"></script>"#
     },
 
