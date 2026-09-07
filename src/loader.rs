@@ -93,14 +93,26 @@ pub static VERSIONS: &[ClientVersion] = &[
     },
 
     ClientVersion {
-        ver: "0.96.3", date: "12 Sep 2025", desc: "wiki isnt working",
+        ver: "0.96.3", date: "12 Sep 2025", desc: "wiki control panel isnt working + changed font",
         extra: r#"<link href="./cli/0.96.3/main.css?ver=18" rel=stylesheet>
         <link href="./cli/0.96.3/window.css?ver=18" rel=stylesheet>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Huninn&family=Manrope:wght@200..800&family=News+Cycle:wght@400;700&family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
         <script defer src="./cli/0.96.3/ojhub.js?ver=18&helper"></script>"#
     },
 
     ClientVersion {
-        ver: "GHE1.9", date: "24 Now 2024", desc: "GDPS Helper 1.901, not object hub",
+        ver: "0.942", date: "1 Jul 2025", desc: "accounts and profiles isnt working",
+        extra: r#"<link href="./cli/0.942/main.css?ver=18" rel=stylesheet>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&family=Huninn&family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
+        <script defer src="./cli/0.942/ojhub.js?ver=18&helper"></script>"#
+    },
+
+    ClientVersion {
+        ver: "GHE1.9", date: "24 Nov 2024", desc: "GDPS Helper 1.901, not object hub",
         extra: r#"<link href="./cli/GHE1.9/main.css" rel=stylesheet>
         <style id="stule">
             :root {

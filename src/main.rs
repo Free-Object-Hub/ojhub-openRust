@@ -138,6 +138,8 @@ static DROP_TO_OPENGO: &[&str] = &[
     "wordleEN",
     "loginT",
     "likesT",
+    "!newTakeAll",
+    "Aaction",
 ];
 
 pub async fn drop_to_go() -> impl IntoResponse {
@@ -149,8 +151,6 @@ static DROP_TO_PHP: &[&str] = &[
     "wiki/filesGet",
     "wiki/filesSend",
     "search/deleteWikiFiles",
-    "!newTakeAll",
-    "Aaction",
     "vless",
 ];
 
