@@ -23,6 +23,22 @@ pub async fn check_device(
     Ok(exists.0)
 }
 
+pub async fn easy_check_device(
+    pool: &MySqlPool,
+    user_id: i32,
+    static_fp: &str,
+) -> Result<bool, sqlx::Error> {
+    let exists: (bool,) = sqlx::query_as(
+        "SELECT EXISTS(SELECT 1 FROM devices WHERE userId = ? AND staticFp = ?)"
+    )
+    .bind(user_id)
+    .bind(static_fp)
+    .fetch_one(pool)
+    .await?;
+
+    Ok(exists.0)
+}
+
 pub async fn add_device(
     pool: &MySqlPool,
     user_id: i32,

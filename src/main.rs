@@ -28,8 +28,10 @@ mod db;
 mod push;
 mod index;
 mod auth;
+mod user;
 mod devices;
 mod porting;
+mod utils;
 
 use axum::{Router, routing::get, routing::post};
 use loader::cli_loader_handler;
@@ -42,7 +44,6 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use maxminddb::Reader;
 use std::sync::Arc;
-use crate::auth::h_login::login_handler;
 
 static API_ADDR: &str = "/server/133/";
 static PHP: &str = ".php";
@@ -146,12 +147,12 @@ pub async fn drop_to_go() -> impl IntoResponse {
     (StatusCode::from_u16(398).unwrap(), "")
 }
 
-// то что ни openGo ни openRust не реализовали -> 399, сразу в php
+// то что ни openGo ни openRust не реализовали -> 404, legacy php выключен же
 static DROP_TO_PHP: &[&str] = &[
     "wiki/filesGet",
     "wiki/filesSend",
     "search/deleteWikiFiles",
-    "vless",
+    "vless", // MIOBOMB: я использую это для себя на локалхосте, забыл удалить лол
 ];
 
 pub async fn drop_to_php() -> impl IntoResponse {
@@ -199,7 +200,6 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/loader", get(cli_loader_handler))
-        //.route("/server/133/user/login.php", post(login_handler))
         .route("/cli/send-push", post(send_push_handler));
 
     let app = register_fallback_routes(app);

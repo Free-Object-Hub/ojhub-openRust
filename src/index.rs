@@ -17,16 +17,13 @@ use crate::AppState;
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use crate::db::{gdps_fetch_by_id, wiki_fetch_by_id, vac_fetch_by_id, news_fetch_by_id};
 use crate::loader::get_ver_from_cookie;
+use crate::utils::{truncate_for_preview, PREVIEW_TRUNCATE_LIMIT};
 
 fn build_description(short: Option<&str>, fallback: &str) -> String {
     match short {
         Some(s) if !s.is_empty() => s.to_string(),
-        _ => truncate_chars(fallback, 120),
+        _ => truncate_for_preview(fallback, PREVIEW_TRUNCATE_LIMIT),
     }
-}
-
-fn truncate_chars(s: &str, max_chars: usize) -> String {
-    s.chars().take(max_chars).collect()
 }
 
 async fn build_meta_tags(state: &AppState, params: &HashMap<String, String>, raw_query: &Option<String>) -> String {
@@ -71,7 +68,7 @@ async fn build_meta_tags(state: &AppState, params: &HashMap<String, String>, raw
                     .ok()
                     .and_then(|bytes| String::from_utf8(bytes).ok())
                     .unwrap_or_default();
-                let descr = truncate_chars(&decoded, 120);
+                let descr = truncate_for_preview(&decoded, PREVIEW_TRUNCATE_LIMIT);
                 let image = news.g_img.unwrap_or_default();
                 return build_tags(&news.title, &descr, &image);
             }

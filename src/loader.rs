@@ -34,11 +34,22 @@ pub fn find_version(ver: &str) -> Option<&'static ClientVersion> {
     VERSIONS.iter().find(|v| v.ver == ver)
 }
 
+#[derive(PartialEq)]
+pub enum VersionStatus {
+    Dev,         // тестовые версии, не предназначенные для реального использования
+    Stable,      // текущая рекомендуемая версия
+    Supported,   // жива, получает обновления безопасности (например закрытие найденных xss)
+    Legacy,      // доступна через loader, но новые фичи (comments и т.п.) не обязаны на ней работать
+    Archived,    // держится только чтобы не сломать прямые ссылки/историю, заведомо не поддерживается
+}
+
+
 pub struct ClientVersion {
     pub ver: &'static str,
     pub date: &'static str,
     pub desc: &'static str,
     pub extra: &'static str,
+    pub status: VersionStatus
 }
 
 // FIXME: устранить излишний хардкод как это было в openGo
@@ -46,6 +57,7 @@ pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
         ver: "0.98.1", date: "?? ??? 2026", desc: "GHE 2.2 and Jails init",
+        status: VersionStatus::Dev,
         extra: r#"<link href="./cli/0.98.1/main.css?ver=21" rel=stylesheet>
         <link href="./cli/0.98.1/window.css?ver=21" rel=stylesheet>
         <script defer src="./cli/0.98.1/newHelper.js?ver=26"></script>
@@ -54,7 +66,8 @@ pub static VERSIONS: &[ClientVersion] = &[
     },
 
     ClientVersion {
-        ver: "0.98", date: "28 Aug 2026", desc: "beta 1 BUT ALR IN PROD",
+        ver: "0.98", date: "28 Aug 2026", desc: "current stable",
+        status: VersionStatus::Stable,
         extra: r#"<link href="./cli/0.98/main.css?ver=21" rel=stylesheet>
         <link href="./cli/0.98/window.css?ver=21" rel=stylesheet>
         <script defer src="./cli/0.98/newHelper.js?ver=26"></script>
@@ -64,6 +77,7 @@ pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
         ver: "0.97.8", date: "canceled", desc: "openRust AND action write init",
+        status: VersionStatus::Archived,
         extra: r#"<link href="./cli/0.97.8/main.css?ver=20" rel=stylesheet>
         <link href="./cli/0.97.8/window.css?ver=20" rel=stylesheet>
         <script defer src="./cli/0.97.8/newHelper.js?ver=25"></script>
@@ -73,6 +87,7 @@ pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
         ver: "0.97.7", date: "27 Jul 2026", desc: "openGo init",
+        status: VersionStatus::Legacy,
         extra: r#"<link href="./cli/0.97.7/main.css?ver=20" rel=stylesheet>
         <link href="./cli/0.97.7/window.css?ver=20" rel=stylesheet>
         <script defer src="./cli/0.97.7/newHelper.js?ver=25"></script>
@@ -82,6 +97,7 @@ pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
         ver: "0.97.33", date: "31 Jan 2026", desc: "",
+        status: VersionStatus::Archived,
         extra: r#"<link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
@@ -94,6 +110,7 @@ pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
         ver: "0.96.3", date: "12 Sep 2025", desc: "wiki control panel isnt working + changed font",
+        status: VersionStatus::Archived,
         extra: r#"<link href="./cli/0.96.3/main.css?ver=18" rel=stylesheet>
         <link href="./cli/0.96.3/window.css?ver=18" rel=stylesheet>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,6 +121,7 @@ pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
         ver: "0.942", date: "1 Jul 2025", desc: "accounts and profiles isnt working",
+        status: VersionStatus::Archived,
         extra: r#"<link href="./cli/0.942/main.css?ver=18" rel=stylesheet>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -113,6 +131,7 @@ pub static VERSIONS: &[ClientVersion] = &[
 
     ClientVersion {
         ver: "GHE1.9", date: "24 Nov 2024", desc: "GDPS Helper 1.901, not object hub",
+        status: VersionStatus::Archived,
         extra: r#"<link href="./cli/GHE1.9/main.css" rel=stylesheet>
         <style id="stule">
             :root {
@@ -144,6 +163,7 @@ pub async fn cli_loader_handler(headers: HeaderMap) -> Html<String> {
             <td><button onclick="(document.cookie='cli_ver=;path=/;max-age=0');location.pathname=''">stable</button></td>
             <td></td>
             <td></td>
+            <td></td>
         </tr>"#
     );
     for v in VERSIONS.iter() {
@@ -151,11 +171,19 @@ pub async fn cli_loader_handler(headers: HeaderMap) -> Html<String> {
             r#"<tr>
                 <td><button onclick="(document.cookie='cli_ver={ver}; path=/; max-age={max_age}');location.pathname=''">{ver}</button></td>
                 <td>{date}</td>
+                <td>{status}</td>
                 <td>{desc}</td>
             </tr>"#,
             ver = v.ver,
             max_age = 60 * 60 * 24 * 365,
             date = v.date,
+            status = match v.status {
+                VersionStatus::Dev => "dev",
+                VersionStatus::Stable => "stable",
+                VersionStatus::Supported => "supported",
+                VersionStatus::Legacy => "legacy",
+                VersionStatus::Archived => "archived",
+            },
             desc = v.desc
         ));
     }
@@ -173,6 +201,7 @@ pub async fn cli_loader_handler(headers: HeaderMap) -> Html<String> {
         <tr>
             <th>ver</th>
             <th>date</th>
+            <th>status</th>
             <th>desc</th>
         </tr>
         {rows}

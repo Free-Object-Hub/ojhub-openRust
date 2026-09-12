@@ -1,39 +1,10 @@
-pub mod h_login;
+pub mod middleware;
 
 use sqlx::FromRow;
 use maxminddb::geoip2;
 use std::net::IpAddr;
 use std::str::FromStr;
 use sqlx::MySqlPool;
-
-#[derive(FromRow)]
-pub struct User {
-    #[sqlx(rename = "userId")]
-    pub user_id: i32,
-    pub username: String,
-    pub nickname: Option<String>,
-    pub password: String,
-    pub mail: String,
-    pub activated: i32,
-    pub priority: i32,
-    pub token: String,
-    pub resume: String,
-    pub socials: String,
-}
-
-pub async fn get_user_by_email(pool: &MySqlPool, email: &str) -> Result<Option<User>, sqlx::Error> {
-    sqlx::query_as::<_, User>("SELECT * FROM users WHERE mail = ?")
-        .bind(email)
-        .fetch_optional(pool)
-        .await
-}
-
-pub async fn get_user_by_username(pool: &MySqlPool, username: &str) -> Result<Option<User>, sqlx::Error> {
-    sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ?")
-        .bind(username)
-        .fetch_optional(pool)
-        .await
-}
 
 pub fn exploit_patch(input: &str) -> String {
     input
@@ -46,17 +17,14 @@ pub fn exploit_patch(input: &str) -> String {
 
 pub fn get_city(reader: &maxminddb::Reader<Vec<u8>>, ip: &str) -> (String, String) {
     let unknown = ("Unknown".to_string(), "Unknown".to_string());
-
     let addr = match IpAddr::from_str(ip) {
         Ok(a) => a,
         Err(_) => return unknown,
     };
-
     let city: geoip2::City = match reader.lookup(addr) {
         Ok(Some(c)) => c,
         _ => return unknown,
     };
-
     let country = city
         .country
         .as_ref()
@@ -64,7 +32,6 @@ pub fn get_city(reader: &maxminddb::Reader<Vec<u8>>, ip: &str) -> (String, Strin
         .and_then(|n| n.get("en"))
         .map(|s| s.to_string())
         .unwrap_or_else(|| "Unknown".to_string());
-
     let city_name = city
         .city
         .as_ref()
@@ -72,7 +39,6 @@ pub fn get_city(reader: &maxminddb::Reader<Vec<u8>>, ip: &str) -> (String, Strin
         .and_then(|n| n.get("en"))
         .map(|s| s.to_string())
         .unwrap_or_else(|| "Unknown".to_string());
-
     (country, city_name)
 }
 
