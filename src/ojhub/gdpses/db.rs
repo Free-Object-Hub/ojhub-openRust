@@ -1,8 +1,9 @@
 use crate::utils::{is_valid_lang, exploit_patch};
 use sqlx::{MySqlPool, FromRow};
 use std::collections::BTreeMap;
+use serde::Serialize;
 
-#[derive(FromRow, Clone)]
+#[derive(FromRow, Serialize, Clone)]
 pub struct Gdps {
     #[sqlx(rename = "ID")]
     pub id: i32,

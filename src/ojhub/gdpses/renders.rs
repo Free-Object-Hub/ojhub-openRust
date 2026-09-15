@@ -4,6 +4,16 @@ use std::collections::BTreeMap;
 use super::db::Gdps;
 use crate::utils::{truncate_for_preview, PREVIEW_TRUNCATE_LIMIT};
 
+pub fn channel_ids_to_string(id: i32) -> &'static str {
+    match id {
+        0 => "c",
+        1 => "s",
+        2 => "p",
+        3 => "t",
+        _ => "x",
+    }
+}
+
 #[derive(Serialize)]
 pub struct GdpsShort {
     #[serde(rename = "ID")]

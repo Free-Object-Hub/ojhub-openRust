@@ -32,11 +32,24 @@ mod user;
 mod devices;
 mod porting;
 mod utils;
+mod socials;
+mod ramdb;
+mod init_ojhub;
+mod wiki;
+mod ojhub;
+mod captcha;
 
 use axum::{Router, routing::get, routing::post};
+
 use loader::cli_loader_handler;
 use index::index_handler;
+use socials::likes::likes_handler;
 use push::send_push_handler;
+use crate::auth::handlers::{
+    login_handler,
+    register_handler
+};
+
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::MySqlPool;
 use sqlx::mysql::MySqlConnectOptions;
@@ -50,7 +63,7 @@ static PHP: &str = ".php";
 
 // то что openGo уже реализовал, но openRust ещё нет -> 398, шлём в openGo
 static DROP_TO_OPENGO: &[&str] = &[
-    "user/login",
+    //"user/login",
     "user/logout",
     "user/register",
     "send/newsPost",
@@ -138,7 +151,6 @@ static DROP_TO_OPENGO: &[&str] = &[
     "wordleRU",
     "wordleEN",
     "loginT",
-    "likesT",
     "!newTakeAll",
     "Aaction",
 ];
@@ -175,6 +187,8 @@ fn register_fallback_routes(mut app: Router<AppState>) -> Router<AppState> {
 pub struct AppState {
     pub db: MySqlPool,
     pub geo: std::sync::Arc<maxminddb::Reader<Vec<u8>>>,
+    pub ram: Option<deadpool_redis::Pool>,
+    pub altcha_secret: String,
 }
 
 #[tokio::main]
@@ -192,14 +206,22 @@ async fn main() {
         .expect("Failed to connect to MySQL");
     let geo_reader = Reader::open_readfile("GeoLite2-City.mmdb")
         .expect("Failed to load GeoLite2 database");
+    let ram = ramdb::init_redis().await;
+    let altcha_secret = std::env::var("ALTCHA_SECRET").expect("ALTCHA_SECRET");
     let state = AppState {
         db: pool,
         geo: Arc::new(geo_reader),
+        ram,
+        altcha_secret
     };
 
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/loader", get(cli_loader_handler))
+        .route("/server/133/likesT.php", get(likes_handler))
+        .route("/server/133/user/login.php", post(login_handler))
+        .route("/server/133/user/register.php", post(register_handler))
+        .route("/server/133/challenge.php", get(captcha::challenge))
         .route("/cli/send-push", post(send_push_handler));
 
     let app = register_fallback_routes(app);
